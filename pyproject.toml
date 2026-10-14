@@ -1,0 +1,19 @@
+[project]
+name = "dc-calc"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "LockKing", email = "89087730+L0ckKing@users.noreply.github.com" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "typer>=0.27.3",
+]
+
+[project.scripts]
+dc-calc = "dc_calc:main"
+
+[build-system]
+requires = ["uv_build>=0.12.18,<0.13.0"]
+build-backend = "uv_build"
