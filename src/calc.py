@@ -78,7 +78,6 @@ class StackEngine:
         "push": push,
         "pop": pop_and_print,
         "add": add,
-        
     }
 
     

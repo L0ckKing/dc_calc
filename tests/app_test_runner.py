@@ -8,7 +8,7 @@ runner = CliRunner()
 def run_cli(test_input: str) -> tuple[int, str]:
     """Runs the CLI and returns (exit_code, stdout_text)."""
     result = runner.invoke(app, input=test_input + "\n")
-    return result.exit_code, result.stdout.strip()
+    return result.exit_code, result.stdout.strip().replace("DC Calculator operational:\n", '')
 
 def build_calc(*values: tuple[float, float]) -> StackEngine:
     """Instantiates a StackEngine and pushes all provided values in order."""

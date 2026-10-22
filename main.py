@@ -9,7 +9,7 @@ app = typer.Typer()
 def run():
     engine = StackEngine()
     keywords = engine.operations.keys()
-
+    print("DC Calculator operational:")
     for line in sys.stdin:
         raw_tokens = line.lower().split()
         if not raw_tokens:
