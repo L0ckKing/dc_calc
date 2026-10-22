@@ -1,3 +1,7 @@
+from cli import app
 
 class Calculator:
-    pass
+    def StartCalc():
+        print("Calc Started")
+
+
