@@ -240,3 +240,184 @@ main.py already catches that error and prints Error: division by zero.
 There's a catch, though: once the complex formula goes in, that division by c² + d² is what will raise the error instead. That still works, since a value of 0 means both parts are 0, but it's worth knowing that the source of the error moves.
 
 
+
+## T-DIV-CPLX1 RED
+
+# Prompt
+TEST prompt (TDD red step) for: T-DIV-CPLX1 push 4+j2 push 1+j1 div pop -> 3 - j1
+
+Rules:
+- Add exactly ONE new test for the case above. Name it after the test ID and follow the framework and style of the existing tests.
+- Use the exact command input and expected output given above.
+- Do NOT modify production code or any existing test.
+- Run only the new test and show that it fails. Then stop. Do not try to make it pass.
+- Append to prompts.md a heading "<TEST-ID> RED", the full text of this prompt with the arguments filled in, and one line summarizing the test you added.
+
+Summary: Filled in the `test_T_DIV_CPLX1` placeholder in tests/test_div.py with a unit check (`div` on (4+j2) and (1+j1) gives (3, -1)) and a CLI check (`push 4+j2 push 1+j1 div pop` prints `3-j1`); it fails because `div` currently returns (4, 0), dividing only the real parts.
+
+
+# Result
+
+The test fails as expected, so the red step worked.
+
+What I did
+
+I checked your expected value by hand first: (4+j2) ÷ (1+j1) = 3−j1. It's correct.
+I filled in the test_T_DIV_CPLX1 placeholder in tests/test_div.py:
+Engine test: divide (4, 2) by (1, 1) and expect (3, -1).
+CLI test: run push 4+j2 push 1+j1 div pop and expect 3-j1.
+I ran only this test and it failed with actual = (4.0, 0.0), expected = (3.0, -1.0). That's the shortcut from the last step: div currently divides only the real parts (4 ÷ 1 = 4) and sets the imaginary part to 0.
+I added the T-DIV-CPLX1 RED entry to prompts.md, and no production code changed.
+Something new this round
+This is the first test where the answer has a negative imaginary part, so it's the first time the CLI has to print -j instead of +j. Your formatting function already handles that case, so I don't expect any trouble from it. Still, if the green step fails in an unexpected way, check the formatting first.
+
+For the green step
+The fix should stay inside div.py: replace the real-only line with the full complex division formula, ((ac + bd) + j(bc − ad)) / (c² + d²). Ready for /code_prompt T-DIV-CPLX1 whenever you are.
+
+
+
+## T-DIV-CPLX1 GREEN
+
+# Prompt
+CODE prompt (TDD green step) for: T-DIV-CPLX1
+
+Rules:
+- Make the smallest change to the production code that makes the failing test T-DIV-CPLX1 pass.
+- Implement only what this test requires. Add nothing for future tests.
+- Do NOT modify any test file.
+- Reuse the existing output formatting and command parsing. Don't rewrite them unless this test needs it.
+- Run the full test suite once. If anything fails, report which tests failed and stop. Do not attempt a fix.
+- Append to prompts.md a heading "<TEST-ID> GREEN", the full text of this prompt with the arguments filled in, and one line summarizing the code change.
+
+Summary: Replaced the real-only quotient in src/calc_functions/div.py with the full complex quotient ((ac + bd) + j(bc - ad)) / (c^2 + d^2); full suite 29 passed.
+
+
+# Result
+
+T-DIV-CPLX1 passes now, and so does everything else: 29 passed, 0 failed. No surprises this round.
+
+What I changed
+The only change is in src/calc_functions/div.py. I replaced the real-only shortcut with proper complex division:
+
+
+denom = b[0] * b[0] + b[1] * b[1]
+engine.push(((a[0] * b[0] + a[1] * b[1]) / denom, (a[1] * b[0] - a[0] * b[1]) / denom))
+That's the textbook formula ((ac + bd) + j(bc − ad)) / (c² + d²). I put the bottom part in a denom variable so the push line stays readable.
+
+No tests changed, and the parsing and formatting code didn't need touching. The -j printing I mentioned last time worked: the CLI printed 3-j1 correctly. I added the GREEN entry to prompts.md.
+
+REAL1 still works
+With real numbers the imaginary parts are 0, so the formula reduces to (8 × 2) / 4 = 4. That's the same answer as before.
+
+Why the test count is stuck at 29
+pytest counts the empty pass placeholders as passing tests. Each red/green cycle turns a stub into a real test, so the total stays the same.
+
+What to expect for T-DIV-ERR1
+Dividing by zero means denom = 0² + 0² = 0. Python then raises ZeroDivisionError by itself, and main.py already catches that and prints Error: division by zero. So if T-DIV-ERR1 is the divide-by-zero case, it will probably pass on its first run, the same as T-MUL-ERR1 did.
+
+
+## T-DIV-ERR1 RED
+
+# Prompt
+TEST prompt (TDD red step) for: T-DIV-ERR1 push 1 push 0 div -> Error: division by zero
+
+Rules:
+- Add exactly ONE new test for the case above. Name it after the test ID and follow the framework and style of the existing tests.
+- Use the exact command input and expected output given above.
+- Do NOT modify production code or any existing test.
+- Run only the new test and show that it fails. Then stop. Do not try to make it pass.
+- Append to prompts.md a heading "<TEST-ID> RED", the full text of this prompt with the arguments filled in, and one line summarizing the test you added.
+
+Summary: Filled in the `test_T_DIV_ERR1` placeholder in tests/test_div.py with a unit check (`div` of 1 by 0 raises ZeroDivisionError) and a CLI check (`push 1 push 0 div` prints `Error: division by zero` to stderr); it PASSED on first run (no red) because the complex-division denominator c^2 + d^2 is 0, Python raises ZeroDivisionError on its own, and main.py already turns that into the error message.
+
+
+# Result
+
+I wrote `T-DIV-ERR1`, but it passed the first time I ran it, so there's no red step. That's what I expected last round, and it's the same situation as `T-MUL-ERR1`.
+
+**What I did**
+- I filled in the `test_T_DIV_ERR1` placeholder in [tests/test_div.py](tests/test_div.py), copying the `T-MUL-ERR1` style:
+  1. **Engine test:** dividing 1 by 0 should raise `ZeroDivisionError`.
+  2. **CLI test:** `push 1 push 0 div` should print `Error: division by zero` to stderr, and the program should still exit normally (code 0).
+- To read stderr I needed the same extra imports at the top of the file as in `test_mul.py` (`pytest`, `runner`, `app`).
+- I ran only this test and it **passed**. I didn't rig it to fail. In prompts.md I logged it as "PASSED on first run (no red)", with the reason.
+
+**Why it passed straight away**
+- When you divide by `0+j0`, the bottom of the division formula is 0² + 0² = 0. Python raises `ZeroDivisionError` on its own when that happens.
+- `main.py` was already catching that error and printing the message.
+- So the new error-handling code we would normally write already existed before this test.
+
+**A few small notes**
+- The diff for `test_div.py` also shows the `CPLX1` test from earlier, because none of this round's work has been committed yet. Nothing unexpected happened there.
+- The suggestion from last time is now more worth doing. Two test files repeat the same stderr workaround, and seven more ERR tests are still empty stubs. Extending `run_cli` to return stderr as well would tidy that up. It would change a shared test helper, though, so that's your call.
+
+**Status:** mul and div now each have all three tests written (REAL1, CPLX1 and ERR1). You can run `/code_prompt T-DIV-ERR1` to record a GREEN entry, but it would only confirm that everything passes.
+
+## T-DEL-REAL1 RED
+
+# Prompt
+TEST prompt (TDD red step) for: T-DEL-REAL1 push 1 push 2 delete pop -> 1 + j0
+
+Rules:
+- Add exactly ONE new test for the case above. Name it after the test ID and follow the framework and style of the existing tests.
+- Use the exact command input and expected output given above.
+- Do NOT modify production code or any existing test.
+- Run only the new test and show that it fails. Then stop. Do not try to make it pass.
+- Append to prompts.md a heading "<TEST-ID> RED", the full text of this prompt with the arguments filled in, and one line summarizing the test you added.
+
+Summary: Filled in the `test_T_DEL_REAL1` placeholder in tests/test_del.py with a unit check (`delete` on [1, 2] leaves 1 on top) and a CLI check (`push 1 push 2 delete pop` prints `1+j0`); it fails because `src.calc_functions.delete` doesn't exist yet (named `delete` since `del` is a Python keyword).
+
+# Result
+
+Red step done. This one went red properly.
+
+**What I did**
+- I filled in the `test_T_DEL_REAL1` placeholder in [tests/test_del.py](tests/test_del.py):
+  1. **Engine test:** push 1 and 2, call `delete`, and the top of the stack should now be `(1, 0)`. The 2 is thrown away.
+  2. **CLI test:** `push 1 push 2 delete pop` should print exactly `1+j0`. That also checks that `delete` throws the value away without printing anything, unlike `pop`, which prints it.
+- I ran only this test and got `ModuleNotFoundError: No module named 'src.calc_functions.delete'`. That's the failure we want.
+- I added the `T-DEL-REAL1 RED` entry to prompts.md, and no production code changed.
+
+**One thing I had to decide**
+The test file is called `test_del.py`, but `del` is a reserved word in Python, so `def del(engine):` is a syntax error. I named the module and function `delete`, which matches the `delete` command in your test input anyway. So the green step will create `src/calc_functions/delete.py` and register `"delete": delete` in `operations`.
+
+**Other notes**
+- `test_del.py` had no imports at all before, so I added the same two import lines that `test_add.py` uses.
+- The `CPLX1` and `ERR1` placeholders in that file won't load until `delete.py` exists.
+- **Prediction:** if `delete` is written as a plain `engine.pop()`, then `T-DEL-ERR1` (delete on an empty stack) will probably pass on its first run, the same way the mul and div error tests did.
+
+
+
+## T-DEL-CPLX1 RED
+
+# Prompt
+TEST prompt (TDD red step) for: T-DEL-CPLX1 push 1+j1 push 2+j3 delete pop -> 1 + j1
+
+Rules:
+- Add exactly ONE new test for the case above. Name it after the test ID and follow the framework and style of the existing tests.
+- Use the exact command input and expected output given above.
+- Do NOT modify production code or any existing test.
+- Run only the new test and show that it fails. Then stop. Do not try to make it pass.
+- Append to prompts.md a heading "<TEST-ID> RED", the full text of this prompt with the arguments filled in, and one line summarizing the test you added.
+
+Summary: Filled in the `test_T_DEL_CPLX1` placeholder in tests/test_del.py with a unit check (`delete` on [1+j1, 2+j3] leaves (1, 1) on top) and a CLI check (`push 1+j1 push 2+j3 delete pop` prints `1+j1`); it fails only because `src.calc_functions.delete` doesn't exist yet (T-DEL-REAL1 GREEN hasn't been done), not because of anything complex-specific.
+
+
+# Result
+
+I wrote the test and it fails, but **it's red for the wrong reason**, so this one doesn't really count as a red step.
+
+**What I did**
+- I filled in the `test_T_DEL_CPLX1` placeholder in [tests/test_del.py](tests/test_del.py):
+  1. **Engine test:** push `(1, 1)` and `(2, 3)`, call `delete`, and the top of the stack should be `(1, 1)`.
+  2. **CLI test:** `push 1+j1 push 2+j3 delete pop` should print `1+j1`.
+- I ran only this test and got `ModuleNotFoundError: No module named 'src.calc_functions.delete'`.
+- I added the `T-DEL-CPLX1 RED` entry to prompts.md, including why it's red. No production code changed.
+
+**Why that's not a real red**
+- **The order got skipped.** You went straight from `T-DEL-REAL1` RED to this test, without running `/code_prompt T-DEL-REAL1`. So `delete.py` still doesn't exist, and every test in `test_del.py` fails on the import before running anything.
+- **This failure doesn't involve complex numbers at all.** It's the same missing-file error that `T-DEL-REAL1` already showed.
+- **It will probably never go properly red.** `delete` just throws away the top value, so it doesn't care whether that value is real or complex. Once the REAL1 green step creates `delete`, this test will very likely start passing too, with no extra code.
+
+**What I'd do next**
+Run `/code_prompt T-DEL-REAL1`. That should create `delete.py`, register the command, and make **both** delete tests pass in one go. There's then no real green step left for CPLX1, so you can log that as "passed thanks to REAL1's implementation". If your course marks you on clean red-green pairs, it might be worth mentioning in your write-up that the order was swapped here.
