@@ -386,6 +386,35 @@ The test file is called `test_del.py`, but `del` is a reserved word in Python, s
 - The `CPLX1` and `ERR1` placeholders in that file won't load until `delete.py` exists.
 - **Prediction:** if `delete` is written as a plain `engine.pop()`, then `T-DEL-ERR1` (delete on an empty stack) will probably pass on its first run, the same way the mul and div error tests did.
 
+## T-DEL-REAL1 GREEN
+
+# Prompt
+CODE prompt (TDD green step) for: T-DEL-REAL1
+
+Rules:
+- Make the smallest change to the production code that makes the failing test T-DEL-REAL1 pass.
+- Implement only what this test requires. Add nothing for future tests.
+- Do NOT modify any test file.
+- Reuse the existing output formatting and command parsing. Don't rewrite them unless this test needs it.
+- Run the full test suite once. If anything fails, report which tests failed and stop. Do not attempt a fix.
+- Append to prompts.md a heading "<TEST-ID> GREEN", the full text of this prompt with the arguments filled in, and one line summarizing the code change.
+
+Summary: Added src/calc_functions/delete.py (pops and discards the top value without printing) and registered "delete" in StackEngine.operations; full suite 29 passed, and T-DEL-CPLX1 now passes too since delete doesn't care whether the value is complex.
+
+# Result
+
+`T-DEL-REAL1` now passes, and the whole suite does too: 29 passed, 0 failed. No errors and no surprises.
+
+**What I changed**
+- **New file [src/calc_functions/delete.py](src/calc_functions/delete.py):** it just calls `engine.pop()` and throws the value away. That's the smallest change that works. It uses the engine's own `pop`, not `pop_and_print`, which is why nothing is printed. The CLI test checks this, since it expects only `1+j0` in the output.
+- **[src/calc.py](src/calc.py), two lines:** it now imports `delete` and adds `"delete": delete` to `operations`.
+- I didn't change any tests, and I added the GREEN entry to prompts.md.
+
+**What I predicted last time**
+`T-DEL-CPLX1` now passes too, even though I wrote nothing for it. `delete` doesn't look at the value it removes, so real or complex makes no difference. I mentioned this in the GREEN log entry. You can skip `/code_prompt T-DEL-CPLX1`, or run it just to record that it's already green.
+
+**Don't misread the test output**
+`test_T_DEL_ERR1` also shows as PASSED, but it's still the empty `pass` placeholder and doesn't check anything yet. Once you write it (delete on an empty stack gives `Error: stack underflow`), I expect it to pass on its first run, like the mul error test. `engine.pop()` already raises `IndexError` on an empty stack, and `main.py` already turns that into the error message.
 
 
 ## T-DEL-CPLX1 RED
