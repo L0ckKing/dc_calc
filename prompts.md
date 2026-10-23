@@ -170,3 +170,73 @@ The test helper can't see error messages. run_cli only returns normal output (st
 Suggestion: every other ERR test will need the same thing, so it may be worth extending run_cli to return stderr too. That would change a shared test file, though, so it's your call.
 What next?
 There's nothing to fix, so /code_prompt T-MUL-ERR1 would just run the suite and find it passing. You can skip it, or run it for a GREEN entry in the log. If your course expects to see a red result, you could mention in your write-up that this behaviour came for free from pop.
+## T-DIV-REAL1 RED
+
+# Prompt
+TEST prompt (TDD red step) for: T-DIV-REAL1 push 8 push 2 div pop -> 4 + j0
+
+Rules:
+- Add exactly ONE new test for the case above. Name it after the test ID and follow the framework and style of the existing tests.
+- Use the exact command input and expected output given above.
+- Do NOT modify production code or any existing test.
+- Run only the new test and show that it fails. Then stop. Do not try to make it pass.
+- Append to prompts.md a heading "<TEST-ID> RED", the full text of this prompt with the arguments filled in, and one line summarizing the test you added.
+
+Summary: Filled in the `test_T_DIV_REAL1` placeholder in tests/test_div.py with a unit check (`div` on 8 and 2 gives (4, 0)) and a CLI check (`push 8 push 2 div pop` prints `4+j0`); it fails because `src.calc_functions.div` doesn't exist yet.
+
+# Result
+
+Red step done. It's the same pattern as T-MUL-REAL1, and this time it actually went red.
+
+What I did
+
+I filled in the test_T_DIV_REAL1 placeholder in tests/test_div.py, following the same style as the add and mul tests:
+Engine test: push 8 and 2, call div, and expect (4, 0).
+CLI test: run push 8 push 2 div pop and expect 4+j0, with no spaces, since that's how your calculator prints numbers.
+I ran only that test and got ModuleNotFoundError: No module named 'src.calc_functions.div'. That's the failure we want, because the divide function doesn't exist yet.
+I added the T-DIV-REAL1 RED entry to prompts.md, and I didn't touch any production code.
+Same small side effects as with mul
+
+The other two placeholders in that file, CPLX1 and ERR1, can't load until div.py exists, because the import at the top of the file fails.
+For the green step
+
+Order matters: with push 8 push 2 div, the 8 goes in first. So div should compute "first pushed ÷ second pushed" (a / b), the same way add and mul name them a and b.
+Possible repeat of the mul error test: main.py already catches ZeroDivisionError and prints Error: division by zero. If T-DIV-ERR1 turns out to be divide-by-zero, it may pass on its first run, like T-MUL-ERR1 did. Whether that happens depends on how div gets written.
+
+
+
+## T-DIV-REAL1 GREEN
+
+# Prompt
+CODE prompt (TDD green step) for: T-DIV-REAL1
+
+Rules:
+- Make the smallest change to the production code that makes the failing test T-DIV-REAL1 pass.
+- Implement only what this test requires. Add nothing for future tests.
+- Do NOT modify any test file.
+- Reuse the existing output formatting and command parsing. Don't rewrite them unless this test needs it.
+- Run the full test suite once. If anything fails, report which tests failed and stop. Do not attempt a fix.
+- Append to prompts.md a heading "<TEST-ID> GREEN", the full text of this prompt with the arguments filled in, and one line summarizing the code change.
+
+Summary: Added src/calc_functions/div.py (pops two values, pushes the quotient of their real parts, a/b, with imaginary 0) and registered "div" in StackEngine.operations; full suite 29 passed.
+
+# Result
+
+T-DIV-REAL1 now passes, and so do all 29 tests in the suite. No failures and no surprises this round.
+
+What I changed
+
+New file src/calc_functions/div.py: it takes the top two values off the stack and pushes a / b, where a is the first number you pushed. So push 8 push 2 div gives 4, not 0.25.
+src/calc.py, two lines: it now imports div and adds "div": div to operations, so the CLI recognises the command.
+I didn't change any tests or the parsing and formatting code, and I added the GREEN entry to prompts.md.
+Same deliberate shortcut as with mul
+Because the rules say to implement only what this test needs, div divides only the real parts and always sets the imaginary part to 0. That's correct for 8 ÷ 2, but it gives wrong answers for complex numbers without any error. T-DIV-CPLX1 should catch that. Proper complex division is a bit harder than multiplication: you divide by the denominator's squared size (c² + d²), so (a+jb)/(c+jd) = ((ac + bd) + j(bc − ad)) / (c² + d²).
+
+What to expect for T-DIV-ERR1
+If that test is divide-by-zero, it will probably pass on its first run, like T-MUL-ERR1 did:
+
+a[0] / b[0] with b = 0 makes Python raise ZeroDivisionError automatically.
+main.py already catches that error and prints Error: division by zero.
+There's a catch, though: once the complex formula goes in, that division by c² + d² is what will raise the error instead. That still works, since a value of 0 means both parts are 0, but it's worth knowing that the source of the error moves.
+
+

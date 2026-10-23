@@ -1,6 +1,7 @@
 # src/calc.py
 from src.calc_functions.add import add
 from src.calc_functions.mul import mul
+from src.calc_functions.div import div
 
 def transform_number(token: str) -> tuple[float, float]:
         token = token.replace(" ", "")
@@ -80,6 +81,7 @@ class StackEngine:
         "pop": pop_and_print,
         "add": add,
         "mul": mul,
+        "div": div,
     }
 
     
