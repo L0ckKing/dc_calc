@@ -45,3 +45,128 @@ Rules:
 - Append to prompts.md a heading "<TEST-ID> GREEN", the full text of this prompt with the arguments filled in, and one line summarizing the code change.
 
 Summary: Added src/calc_functions/mul.py (pops two values, pushes the product of their real parts with imaginary 0) and registered "mul" in StackEngine.operations; full suite 29 passed.
+
+# Result
+
+Done. T-MUL-REAL1 passes, and so does everything else: all 29 tests pass, no failures.
+
+What I changed
+
+New file src/calc_functions/mul.py: it takes the top two values off the stack, multiplies them, and puts the result back. It's built the same way as add.py.
+src/calc.py, two lines: it now imports mul and adds "mul": mul to operations, so the CLI recognises the mul command.
+I didn't change the number parsing, the output formatting or any tests. I added the GREEN entry to prompts.md using the same Prompt/Result layout you set up.
+One thing to watch out for
+Because the rule said to implement only what this test needs, mul only multiplies the real parts and always sets the imaginary part to 0. For real numbers like 3 × -2 that's correct. For complex numbers it gives the wrong answer without any error: (1+j1) × (1+j1) should be 0+j2, but it would give 1+j0. That's normal TDD. Your next test, T-MUL-CPLX1, should fail on exactly this, and that's when the full complex formula goes in: (ac − bd) + j(ad + bc).
+
+No surprises this time. It went smoothly.
+
+
+
+
+## T-MUL-CPLX1 RED
+
+# Prompt
+TEST prompt (TDD red step) for: T-MUL-CPLX1 push 1+j2 push 3-j4 mul pop -> 11 + j2
+
+Rules:
+- Add exactly ONE new test for the case above. Name it after the test ID and follow the framework and style of the existing tests.
+- Use the exact command input and expected output given above.
+- Do NOT modify production code or any existing test.
+- Run only the new test and show that it fails. Then stop. Do not try to make it pass.
+- Append to prompts.md a heading "<TEST-ID> RED", the full text of this prompt with the arguments filled in, and one line summarizing the test you added.
+
+Summary: Filled in the `test_T_MUL_CPLX1` placeholder in tests/test_mul.py with a unit check (`mul` on (1+j2) and (3-j4) gives (11, 2)) and a CLI check (`push 1+j2 push 3-j4 mul pop` prints `11+j2`); it fails because `mul` currently returns (3, 0), multiplying only the real parts.
+
+# Result 
+
+Red step done. The new test fails for exactly the reason we expected.
+
+What I did
+
+I first checked your expected value by hand: (1+j2) × (3−j4) = 3 − j4 + j6 + 8 = 11+j2. Your number is right.
+I wrote test_T_MUL_CPLX1 in tests/test_mul.py the same way as the REAL1 test:
+Engine test: multiply (1, 2) by (3, -4) and expect (11, 2).
+CLI test: run push 1+j2 push 3-j4 mul pop and expect 11+j2.
+I ran only this test and it failed with actual = (3.0, 0.0), expected = (11.0, 2.0). That's the shortcut from the last step showing up: mul currently multiplies only the real parts (1 × 3 = 3) and sets the imaginary part to 0. This is the failure we wanted.
+I added the T-MUL-CPLX1 RED entry to prompts.md using your Prompt/Summary layout.
+Same two notes as last time, nothing new
+
+I filled in the existing pass placeholder rather than adding a second function with the same name.
+The test expects 11+j2 with no spaces, because that's how your calculator prints numbers.
+No production code changed. When you run /code_prompt T-MUL-CPLX1, the fix should be one line in mul.py: replace the real-only product with the full formula (ac − bd) + j(ad + bc).
+
+
+## T-MUL-CPLX1 GREEN
+
+# Prompt
+CODE prompt (TDD green step) for: T-MUL-CPLX1
+
+Rules:
+- Make the smallest change to the production code that makes the failing test T-MUL-CPLX1 pass.
+- Implement only what this test requires. Add nothing for future tests.
+- Do NOT modify any test file.
+- Reuse the existing output formatting and command parsing. Don't rewrite them unless this test needs it.
+- Run the full test suite once. If anything fails, report which tests failed and stop. Do not attempt a fix.
+- Append to prompts.md a heading "<TEST-ID> GREEN", the full text of this prompt with the arguments filled in, and one line summarizing the code change.
+
+Summary: Replaced the real-only product in src/calc_functions/mul.py with the full complex product (ac - bd) + j(ad + bc); full suite 29 passed.
+
+# Result
+
+Done. T-MUL-CPLX1 now passes, and the full suite is still green: 29 passed, nothing failed.
+
+What I changed
+It was a one-line change in src/calc_functions/mul.py. The real-only shortcut from last time:
+
+
+engine.push((a[0] * b[0], 0.0))
+is now the full complex multiplication, (ac − bd) + j(ad + bc):
+
+
+engine.push((a[0] * b[0] - a[1] * b[1], a[0] * b[1] + a[1] * b[0]))
+Nothing else needed to change. mul was already registered as a command, and the existing code already reads 1+j2 and prints 11+j2 correctly. I didn't touch any tests, and I added the T-MUL-CPLX1 GREEN entry to prompts.md.
+
+Did REAL1 survive?
+Yes. With real numbers the imaginary parts are 0, so the new formula gives 3 × -2 − 0 = -6 with imaginary part 0. That's the same answer as before, so T-MUL-REAL1 still passes.
+
+No surprises this round. Multiplication now works correctly for complex numbers too. The only empty placeholder left in test_mul.py is T-MUL-ERR1, probably the stack-underflow case (for example, mul with only one number on the stack).
+
+
+
+## T-MUL-ERR1 RED
+
+# Prompt
+TEST prompt (TDD red step) for: T-MUL-ERR1 mul -> Error: stack underflow
+
+Rules:
+- Add exactly ONE new test for the case above. Name it after the test ID and follow the framework and style of the existing tests.
+- Use the exact command input and expected output given above.
+- Do NOT modify production code or any existing test.
+- Run only the new test and show that it fails. Then stop. Do not try to make it pass.
+- Append to prompts.md a heading "<TEST-ID> RED", the full text of this prompt with the arguments filled in, and one line summarizing the test you added.
+
+Summary: Filled in the `test_T_MUL_ERR1` placeholder in tests/test_mul.py with a unit check (`mul` on an empty stack raises IndexError) and a CLI check (`mul` prints `Error: stack underflow` to stderr); it PASSED on first run (no red) because `pop` already raises IndexError and main.py already turns that into the underflow message.
+
+
+# Result
+I wrote the test, but it passed the first time I ran it, so this "red" step never went red. Nothing is broken; it's actually good news, but it's a break from the usual TDD routine.
+
+What I did
+I wrote test_T_MUL_ERR1 in tests/test_mul.py in two parts:
+
+Engine test: calling mul on an empty stack should raise IndexError.
+CLI test: typing mul should print Error: stack underflow, and the program should still exit normally (code 0).
+Why it passed straight away
+Your existing code already covers this case:
+
+mul starts with engine.pop(), and pop already raises IndexError when the stack is empty.
+main.py already catches IndexError and prints Error: stack underflow.
+So mul handled this error from the moment you registered it, with no extra code. I didn't rig the test to make it fail, because a fake red tells you nothing. In prompts.md I logged it as "PASSED on first run (no red)" so the record is accurate.
+
+One problem I hit along the way
+
+None of the other error tests are written yet. Every other ERR1 test is still an empty pass, so there was no example to copy.
+The test helper can't see error messages. run_cli only returns normal output (stdout), but the calculator prints errors to a separate stream (stderr). Since I wasn't allowed to change the helper, I imported the test runner and app directly into test_mul.py and checked result.stderr.
+Suggestion: every other ERR test will need the same thing, so it may be worth extending run_cli to return stderr too. That would change a shared test file, though, so it's your call.
+What next?
+There's nothing to fix, so /code_prompt T-MUL-ERR1 would just run the suite and find it passing. You can skip it, or run it for a GREEN entry in the log. If your course expects to see a red result, you could mention in your write-up that this behaviour came for free from pop.
