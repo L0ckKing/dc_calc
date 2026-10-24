@@ -1,4 +1,7 @@
+import pytest
 from tests import *
+from tests.app_test_runner import runner
+from main import app
 from src.calc_functions.delete import delete
 
 def test_T_DEL_REAL1():
@@ -24,4 +27,12 @@ def test_T_DEL_CPLX1():
     assert output == "1+j1"
 
 def test_T_DEL_ERR1():
-        pass
+    # 1. Unit test (isolated engine logic)
+    calc = build_calc()
+    with pytest.raises(IndexError):
+        delete(calc)
+
+    # 2. CLI test (end-to-end user experience)
+    result = runner.invoke(app, input="delete\n")
+    assert result.exit_code == 0
+    assert result.stderr.strip() == "Error: stack underflow"

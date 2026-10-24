@@ -450,3 +450,69 @@ I wrote the test and it fails, but **it's red for the wrong reason**, so this on
 
 **What I'd do next**
 Run `/code_prompt T-DEL-REAL1`. That should create `delete.py`, register the command, and make **both** delete tests pass in one go. There's then no real green step left for CPLX1, so you can log that as "passed thanks to REAL1's implementation". If your course marks you on clean red-green pairs, it might be worth mentioning in your write-up that the order was swapped here.
+
+## T-DEL-CPLX1 GREEN
+
+# Prompt
+CODE prompt (TDD green step) for: T-DEL-CPLX1
+
+Rules:
+- Make the smallest change to the production code that makes the failing test T-DEL-CPLX1 pass.
+- Implement only what this test requires. Add nothing for future tests.
+- Do NOT modify any test file.
+- Reuse the existing output formatting and command parsing. Don't rewrite them unless this test needs it.
+- Run the full test suite once. If anything fails, report which tests failed and stop. Do not attempt a fix.
+- Append to prompts.md a heading "<TEST-ID> GREEN", the full text of this prompt with the arguments filled in, and one line summarizing the code change.
+
+Summary: No production change needed; T-DEL-CPLX1 already passed after T-DEL-REAL1 GREEN added `delete`, which discards the top value regardless of whether it is complex; full suite 29 passed.
+
+# Result
+
+No code needed changing this time: `T-DEL-CPLX1` was already passing, and the full suite is still green (29 passed, 0 failed).
+
+**What happened**
+- `delete` was added in the last step (`T-DEL-REAL1`). It throws away the top value without looking at it, so it handles complex numbers the same way as real ones.
+- The rule says to make the smallest change that gets the test passing. The test already passed, so the smallest change was none.
+- I didn't touch any code or tests. I just ran the suite once to confirm and added a GREEN entry to prompts.md saying no change was needed and why.
+
+**Things that surprised me**
+None this round. It's simply what happens when the complex test was written before the real one had been made to pass. The log in prompts.md is honest about it, which is probably the main thing that matters if this gets marked.
+
+**What's left in `test_del.py`**
+`T-DEL-ERR1` is still the empty placeholder. I expect it to pass on its first run, like the other error tests have. `delete` calls `engine.pop()`, which already raises the empty-stack error, and `main.py` already turns that into `Error: stack underflow`.
+
+## T-DEL-ERR1 RED
+
+# Prompt
+TEST prompt (TDD red step) for: T-DEL-ERR1 delete -> Error: stack underflow
+
+Rules:
+- Add exactly ONE new test for the case above. Name it after the test ID and follow the framework and style of the existing tests.
+- Use the exact command input and expected output given above.
+- Do NOT modify production code or any existing test.
+- Run only the new test and show that it fails. Then stop. Do not try to make it pass.
+- Append to prompts.md a heading "<TEST-ID> RED", the full text of this prompt with the arguments filled in, and one line summarizing the test you added.
+
+Summary: Filled in the `test_T_DEL_ERR1` placeholder in tests/test_del.py with a unit check (`delete` on an empty stack raises IndexError) and a CLI check (`delete` prints `Error: stack underflow` to stderr); it PASSED on first run (no red) because `delete` calls `engine.pop()`, which already raises IndexError, and main.py already turns that into the underflow message.
+
+# Result
+
+I wrote `T-DEL-ERR1`, and it passed the first time I ran it, so there was no red. This is the third error test to do that, after mul and div.
+
+**What I did**
+- I filled in the `test_T_DEL_ERR1` placeholder in [tests/test_del.py](tests/test_del.py), using the same pattern as the other error tests:
+  1. **Engine test:** calling `delete` on an empty stack should raise `IndexError`.
+  2. **CLI test:** typing `delete` should print `Error: stack underflow` to stderr, and the program should still exit normally.
+- I added the same extra imports at the top of the file (`pytest`, `runner`, `app`) so the test can read stderr.
+- I ran only this test, and it **passed**. I didn't make it fail on purpose. prompts.md records "PASSED on first run (no red)" and why.
+
+**Why it passed straight away**
+`delete` is just `engine.pop()`, and `pop` already raises `IndexError` when the stack is empty. `main.py` already catches that and prints the message. Nothing new was needed.
+
+**A pattern you could mention in your write-up**
+None of the three error tests (mul, div, delete) ever went red. Each new command builds on `pop`, and on the error handling in `main.py`, which were written before these tests. That's a reasonable thing to point out in a TDD report: the error handling lives in one shared place, so each new command gets it automatically.
+
+**Suggestion, still optional**
+Three test files now repeat the same stderr workaround. If you plan to write the other ERR tests (add, sub, pop, push, abs, sin), extending `run_cli` to also return stderr would remove that repetition. That changes a shared test helper, though, so it's your call.
+
+`delete` is now fully covered: REAL1, CPLX1 and ERR1.
