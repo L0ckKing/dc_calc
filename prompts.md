@@ -685,3 +685,72 @@ No. Whole numbers still print as before (`7`, `-6`, `3-j1`), because `format_num
 No test checks either case, so I left both alone, which is what the rules ask for. If your spec ever mentions scientific notation, that's where to look.
 
 **Next up:** `T-SIN-ERR1`. If it's `sin` on an empty stack, I expect it to pass on its first run, like every other error test so far.
+## T-COS-REAL1 RED
+
+# Prompt
+TEST prompt (TDD red step) for: T-COS-REAL1 push 0 COS pop -> 1 + j0
+
+Rules:
+- Add exactly ONE new test for the case above. Name it after the test ID and follow the framework and style of the existing tests.
+- Use the exact command input and expected output given above.
+- Do NOT modify production code or any existing test.
+- Run only the new test and show that it fails. Then stop. Do not try to make it pass.
+- Append to prompts.md a heading "<TEST-ID> RED", the full text of this prompt with the arguments filled in, and one line summarizing the test you added.
+
+Summary: Created tests/test_cos.py (no cos test file existed) with `test_T_COS_REAL1`: a unit check (`cos` of 0 gives (1, 0)) and a CLI check (`push 0 COS pop` prints `1+j0`); it fails because `src.calc_functions.cos` doesn't exist yet.
+
+
+# Result
+
+Red step done. It went red for the right reason.
+
+**What I did**
+- **New test file:** cos was the first command with no test file, so I created [tests/test_cos.py](tests/test_cos.py). It follows the same layout as the others, with the same imports and the same two-part test.
+  1. **Engine test:** push 0, call `cos`, and expect `(1, 0)`.
+  2. **CLI test:** run `push 0 COS pop` and expect `1+j0`.
+- I ran only this test and got `ModuleNotFoundError: No module named 'src.calc_functions.cos'`. That's the failure we want, because `cos` doesn't exist yet.
+- I added the `T-COS-REAL1 RED` entry to prompts.md, and no production code changed.
+
+**One thing I deliberately didn't do**
+Your other test files came with three `pass` stubs each, for REAL1, CPLX1 and ERR1. I **didn't** add stubs for `T-COS-CPLX1` and `T-COS-ERR1`, because the rules say exactly one new test. Those functions will get added when you run their red steps.
+
+**This test is better than the sin one**
+sin(0) = 0, so a `sin` that did nothing would have passed. cos(0) = 1 is different from the input, so this test only passes if `cos` actually computes something.
+
+**For the green step**
+The same pattern as `sin` would be:
+- create `cos.py`
+- register `"cos": cos`
+- start with real-only `math.cos`, since the rules say not to build for future tests.
+
+`T-COS-CPLX1` can then drive the switch to `cmath.cos`. The new 9-decimal formatting is already in place, so complex outputs should print the way you expect.
+## T-COS-REAL1 GREEN
+
+# Prompt
+CODE prompt (TDD green step) for: T-COS-REAL1
+
+Rules:
+- Make the smallest change to the production code that makes the failing test T-COS-REAL1 pass.
+- Implement only what this test requires. Add nothing for future tests.
+- Do NOT modify any test file.
+- Reuse the existing output formatting and command parsing. Don't rewrite them unless this test needs it.
+- Run the full test suite once. If anything fails, report which tests failed and stop. Do not attempt a fix.
+- Append to prompts.md a heading "<TEST-ID> GREEN", the full text of this prompt with the arguments filled in, and one line summarizing the code change.
+
+Summary: Added src/calc_functions/cos.py (pops one value, pushes math.cos of its real part with imaginary 0) and registered "cos" in StackEngine.operations; full suite 30 passed.
+
+
+# Result
+
+`T-COS-REAL1` passes, and the full suite is green: **30 passed**, 0 failed. No surprises.
+
+**What I changed**
+- **New file [src/calc_functions/cos.py](src/calc_functions/cos.py):** it's a mirror of what `sin` looked like after its first green step. It takes one value off the stack and pushes back `math.cos` of the real part, with the imaginary part set to 0.
+- **[src/calc.py](src/calc.py), two lines:** it now imports `cos` (line 7) and adds `"cos": cos` to `operations` (line 90). `COS` in capitals works because `main.py` lowercases what you type.
+- I didn't change any tests or the formatting code, and I added the GREEN entry to prompts.md.
+
+**Why the count went from 29 to 30**
+This is the first time the total has gone up. `test_cos.py` is a brand-new file, so its test is an extra one, not a filled-in placeholder like all the earlier tests.
+
+**Same deliberate shortcut as before**
+`cos` ignores the imaginary part for now. That's correct for real numbers but wrong for complex ones: cos(1+j1) should be about `0.833730025-j0.988897706`, and right now it gives `0.540302306+j0`. `T-COS-CPLX1` should catch that, and the fix is the same one-word change we made for sin, `math` to `cmath`. Its output may well have a negative imaginary part, but printing with `-j` is already handled.

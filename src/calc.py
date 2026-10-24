@@ -4,6 +4,7 @@ from src.calc_functions.mul import mul
 from src.calc_functions.div import div
 from src.calc_functions.delete import delete
 from src.calc_functions.sin import sin
+from src.calc_functions.cos import cos
 
 def transform_number(token: str) -> tuple[float, float]:
         token = token.replace(" ", "")
@@ -86,6 +87,7 @@ class StackEngine:
         "div": div,
         "delete": delete,
         "sin": sin,
+        "cos": cos,
     }
 
     
