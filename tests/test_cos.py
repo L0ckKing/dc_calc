@@ -11,3 +11,14 @@ def test_T_COS_REAL1():
     exit_code, output = run_cli("push 0 COS pop")
     assert exit_code == 0
     assert output == "1+j0"
+
+def test_T_COS_CPLX1():
+    # 1. Unit test (isolated engine logic)
+    calc = build_calc((1.0, 1.0))
+    cos(calc)
+    compare(calc.pop(), (0.833730025, -0.988897706))
+
+    # 2. CLI test (end-to-end user experience)
+    exit_code, output = run_cli("push 1+j1 COS pop")
+    assert exit_code == 0
+    assert output == "0.833730025-j0.988897706"

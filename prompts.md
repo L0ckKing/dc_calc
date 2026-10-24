@@ -754,3 +754,65 @@ This is the first time the total has gone up. `test_cos.py` is a brand-new file,
 
 **Same deliberate shortcut as before**
 `cos` ignores the imaginary part for now. That's correct for real numbers but wrong for complex ones: cos(1+j1) should be about `0.833730025-j0.988897706`, and right now it gives `0.540302306+j0`. `T-COS-CPLX1` should catch that, and the fix is the same one-word change we made for sin, `math` to `cmath`. Its output may well have a negative imaginary part, but printing with `-j` is already handled.
+## T-COS-CPLX1 RED
+
+# Prompt
+TEST prompt (TDD red step) for: T-COS-CPLX1 push 1+j1 COS pop -> 0.833730025 - j0.988897706
+
+Rules:
+- Add exactly ONE new test for the case above. Name it after the test ID and follow the framework and style of the existing tests.
+- Use the exact command input and expected output given above.
+- Do NOT modify production code or any existing test.
+- Run only the new test and show that it fails. Then stop. Do not try to make it pass.
+- Append to prompts.md a heading "<TEST-ID> RED", the full text of this prompt with the arguments filled in, and one line summarizing the test you added.
+
+Summary: Added `test_T_COS_CPLX1` to tests/test_cos.py with a unit check (`cos` of (1, 1) gives (0.833730025, -0.988897706)) and a CLI check (`push 1+j1 COS pop` prints `0.833730025-j0.988897706`); it fails because `cos` currently ignores the imaginary part and returns (0.540302306, 0).
+
+# Result
+
+Red step done. This one was clean.
+
+**What I did**
+- I added `test_T_COS_CPLX1` to [tests/test_cos.py](tests/test_cos.py), below the REAL1 test:
+  1. **Engine test:** cos of `(1, 1)` should be about `(0.833730025, -0.988897706)`.
+  2. **CLI test:** `push 1+j1 COS pop` should print exactly `0.833730025-j0.988897706`.
+- I checked your expected value first. Python's `cmath.cos(1+j1)` gives `0.83373002513...-j0.98889770576...`, and the calculator's current formatting prints that exactly as your string. So unlike sin, this test won't need any formatting change.
+- I ran only this test, and it failed with `actual = (0.540..., 0.0)`. That's the real-only shortcut: it computes cos(1) and ignores the imaginary part. This is the failure we want.
+- I added the `T-COS-CPLX1 RED` entry to prompts.md, and no production code changed.
+
+**No surprises**
+The answer has a negative imaginary part (`-j0.988...`), and that's already handled. We saw the `-j` case work back in the div tests.
+
+**For the green step**
+It should be a one-line swap in `cos.py`, from `math.cos` on the real part to `cmath.cos` on the whole complex number, exactly what we did for sin.
+## T-COS-CPLX1 GREEN
+
+# Prompt
+CODE prompt (TDD green step) for: T-COS-CPLX1
+
+Rules:
+- Make the smallest change to the production code that makes the failing test T-COS-CPLX1 pass.
+- Implement only what this test requires. Add nothing for future tests.
+- Do NOT modify any test file.
+- Reuse the existing output formatting and command parsing. Don't rewrite them unless this test needs it.
+- Run the full test suite once. If anything fails, report which tests failed and stop. Do not attempt a fix.
+- Append to prompts.md a heading "<TEST-ID> GREEN", the full text of this prompt with the arguments filled in, and one line summarizing the code change.
+
+Summary: Switched src/calc_functions/cos.py from math.cos on the real part to cmath.cos on the full complex value (same change as sin); no formatting change needed; full suite 31 passed.
+
+# Result
+
+`T-COS-CPLX1` passes, and the full suite is green: **31 passed**, 0 failed. This was one of the smoothest rounds so far.
+
+**What I changed**
+The only change is in [src/calc_functions/cos.py](src/calc_functions/cos.py). I swapped `math.cos` on the real part for `cmath.cos` on the whole complex number, the same change we made to `sin`. The file now has the same layout as `sin.py`, which makes the two easy to compare side by side.
+
+- **Formatting:** no change needed. The 9-decimal formatting from the sin step already prints `0.833730025-j0.988897706` exactly.
+- **REAL1 still works:** cos of `0+j0` is still `1+j0`.
+- No tests changed, and I added the GREEN entry to prompts.md.
+
+**Test count**
+It went from 30 to 31, because this was a new function in the new cos file, not a filled-in stub.
+
+**What's next**
+That leaves `T-COS-ERR1`. If it's `COS` on an empty stack, I'd bet it passes on its first run, like the other four error tests. `cos` starts with `engine.pop()`, which already raises the empty-stack error.
