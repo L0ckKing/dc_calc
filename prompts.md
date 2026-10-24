@@ -816,3 +816,40 @@ It went from 30 to 31, because this was a new function in the new cos file, not 
 
 **What's next**
 That leaves `T-COS-ERR1`. If it's `COS` on an empty stack, I'd bet it passes on its first run, like the other four error tests. `cos` starts with `engine.pop()`, which already raises the empty-stack error.
+
+## T-COS-ERR1 RED
+
+# Prompt
+TEST prompt (TDD red step) for: T-COS-ERR1 COS -> Error: stack underflow
+
+Rules:
+- Add exactly ONE new test for the case above. Name it after the test ID and follow the framework and style of the existing tests.
+- Use the exact command input and expected output given above.
+- Do NOT modify production code or any existing test.
+- Run only the new test and show that it fails. Then stop. Do not try to make it pass.
+- Append to prompts.md a heading "<TEST-ID> RED", the full text of this prompt with the arguments filled in, and one line summarizing the test you added.
+
+Summary: Added `test_T_COS_ERR1` to tests/test_cos.py with a unit check (`cos` on an empty stack raises IndexError) and a CLI check (`COS` prints `Error: stack underflow` to stderr); it PASSED on first run (no red) because `cos` starts with `engine.pop()`, which already raises IndexError, and main.py already turns that into the underflow message.
+
+
+# Result
+
+I added `T-COS-ERR1`, and it passed the first time I ran it, so there was no red. That's five error tests in a row now, all for the same reason.
+
+**What I did**
+- I added `test_T_COS_ERR1` to the end of [tests/test_cos.py](tests/test_cos.py), using the same pattern as the other error tests:
+  1. **Engine test:** `cos` on an empty stack should raise `IndexError`.
+  2. **CLI test:** `COS` should print `Error: stack underflow` to stderr, and the program should still exit normally.
+- I also added the usual extra imports to the top of the file (`pytest`, `runner`, `app`) so the test can read stderr. I didn't change either of the existing tests.
+- I ran only the new test, and it **passed**. I didn't make it fail on purpose. prompts.md records "PASSED on first run (no red)" and why.
+
+**Why it passed straight away**
+`cos` starts with `engine.pop()`, which already raises the empty-stack error, and `main.py` already turns that into the message. Nothing new was needed.
+
+**Where things stand**
+- **Fully covered:** mul, div, delete, sin and cos each have REAL1, CPLX1 and ERR1, and all 32 tests pass.
+- **For your write-up:** none of the five error tests went red, because they all rely on `pop` and the error handling in `main.py`, which already existed. One sentence on that will explain the "no red" entries in your log.
+- **Still empty stubs:** sub, abs, push/pop, and `T-ADD-ERR1`.
+
+
+
