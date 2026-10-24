@@ -1,5 +1,6 @@
 # src/calc.py
 from src.calc_functions.add import add
+from src.calc_functions.abs import abs as abs_operation
 
 def transform_number(token: str) -> tuple[float, float]:
         token = token.replace(" ", "")
@@ -78,6 +79,7 @@ class StackEngine:
         "push": push,
         "pop": pop_and_print,
         "add": add,
+        "abs": abs_operation,
     }
 
     
