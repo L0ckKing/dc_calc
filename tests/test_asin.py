@@ -31,3 +31,16 @@ def test_T_ASIN_ERR1():
     # 2. CLI test (error message)
     result = runner.invoke(app, input="ASIN\n")
     assert "Error: stack underflow" in result.stderr
+
+def test_T_ASIN_REAL1():
+    # 1. Unit test (isolated engine logic)
+    calc = build_calc((0.0, 0.0))
+    calc.apply_operation("asin")
+    compare(calc.pop(), (0.0, 0.0), tol=1e-8)
+
+    # 2. CLI test (end-to-end user experience)
+    exit_code, output = run_cli("push 0 ASIN pop")
+    assert exit_code == 0
+
+    result = transform_number(output)
+    compare(result, (0.0, 0.0), tol=1e-5)
