@@ -3,6 +3,7 @@ from src.calc_functions.add import add
 from src.calc_functions.mul import mul
 from src.calc_functions.div import div
 from src.calc_functions.delete import delete
+from src.calc_functions.sin import sin
 
 def transform_number(token: str) -> tuple[float, float]:
         token = token.replace(" ", "")
@@ -46,7 +47,7 @@ def format_num(n: float) -> str:
     # Format to int string if it's an exact integer, otherwise normal float
     if n.is_integer():
         return str(int(n))
-    return f"{n:g}"
+    return f"{n:.9f}".rstrip("0").rstrip(".")
 
 def format_canonical(value: tuple[float, float]) -> str:
     real, imag = value
@@ -84,6 +85,7 @@ class StackEngine:
         "mul": mul,
         "div": div,
         "delete": delete,
+        "sin": sin,
     }
 
     

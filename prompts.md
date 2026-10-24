@@ -516,3 +516,172 @@ None of the three error tests (mul, div, delete) ever went red. Each new command
 Three test files now repeat the same stderr workaround. If you plan to write the other ERR tests (add, sub, pop, push, abs, sin), extending `run_cli` to also return stderr would remove that repetition. That changes a shared test helper, though, so it's your call.
 
 `delete` is now fully covered: REAL1, CPLX1 and ERR1.
+
+## T-SIN-REAL1 RED
+
+# Prompt
+TEST prompt (TDD red step) for: T-SIN-REAL1 push 0 SIN pop -> 0 + j0
+
+Rules:
+- Add exactly ONE new test for the case above. Name it after the test ID and follow the framework and style of the existing tests.
+- Use the exact command input and expected output given above.
+- Do NOT modify production code or any existing test.
+- Run only the new test and show that it fails. Then stop. Do not try to make it pass.
+- Append to prompts.md a heading "<TEST-ID> RED", the full text of this prompt with the arguments filled in, and one line summarizing the test you added.
+
+Summary: Filled in the `test_T_SIN_REAL1` placeholder in tests/test_sin.py with a unit check (`sin` of 0 gives (0, 0)) and a CLI check (`push 0 SIN pop` prints `0+j0`); it fails because `src.calc_functions.sin` doesn't exist yet.
+
+# Result
+
+Red step done, and it went red for the right reason.
+
+**What I did**
+- I filled in the `test_T_SIN_REAL1` placeholder in [tests/test_sin.py](tests/test_sin.py):
+  1. **Engine test:** push 0, call `sin`, and expect `(0, 0)`.
+  2. **CLI test:** run `push 0 SIN pop`, with `SIN` in capitals just as you wrote it, and expect `0+j0`.
+- I ran only this test and got `ModuleNotFoundError: No module named 'src.calc_functions.sin'`. That's the expected failure, because `sin` doesn't exist yet.
+- I added the `T-SIN-REAL1 RED` entry to prompts.md, and no production code changed.
+
+**Good to know**
+- **Capital letters aren't a problem.** `main.py` lowercases everything you type, so `SIN` becomes `sin` before the calculator looks it up. That means `"sin"` (lowercase) is the name to register in `operations`.
+- **This test is fairly weak.** sin(0) = 0, so even a `sin` that does nothing at all would pass it, because 0 in gives 0 out. For REAL1 that's fine, since the green step will just be "make it exist". Just know that `T-SIN-CPLX1` is the test that will actually check whether the maths is right. If you want a stronger real test, something like sin(π/2) = 1 would catch a do-nothing version.
+- **-0.0 is already handled.** If the green step uses Python's `math.sin` or `cmath.sin`, the answer may come out as `-0.0`. Your formatter already prints that as `0`, so the output will still be `0+j0`.
+## T-SIN-REAL1 GREEN
+
+# Prompt
+CODE prompt (TDD green step) for: T-SIN-REAL1
+
+Rules:
+- Make the smallest change to the production code that makes the failing test T-SIN-REAL1 pass.
+- Implement only what this test requires. Add nothing for future tests.
+- Do NOT modify any test file.
+- Reuse the existing output formatting and command parsing. Don't rewrite them unless this test needs it.
+- Run the full test suite once. If anything fails, report which tests failed and stop. Do not attempt a fix.
+- Append to prompts.md a heading "<TEST-ID> GREEN", the full text of this prompt with the arguments filled in, and one line summarizing the code change.
+
+Summary: Added src/calc_functions/sin.py (pops one value, pushes math.sin of its real part with imaginary 0) and registered "sin" in StackEngine.operations; full suite 29 passed.
+
+# Result
+
+`T-SIN-REAL1` passes, and the full suite is still green: 29 passed, 0 failed. No surprises.
+
+**What I changed**
+- **New file [src/calc_functions/sin.py](src/calc_functions/sin.py):** it takes one value off the stack and pushes back `math.sin` of its real part, with the imaginary part set to 0. It's the first command here that takes one number instead of two.
+- **[src/calc.py](src/calc.py), two lines:** it now imports `sin` and adds `"sin": sin` to `operations`, in lowercase. Your `SIN` in capitals works because `main.py` lowercases what you type.
+- I didn't change any tests, and I added the GREEN entry to prompts.md.
+
+**Same shortcut as mul and div**
+Because the rule says to implement only what this test needs, `sin` ignores the imaginary part. It's correct for real numbers but wrong for complex ones: sin(j1) should be about `0+j1.1752`, and right now it gives `0+j0`. `T-SIN-CPLX1` should catch that. The fix is to use `cmath.sin` instead of `math.sin`, or the formula sin(a+jb) = sin(a)·cosh(b) + j·cos(a)·sinh(b).
+
+I used `math.sin` for real, rather than a do-nothing version that just returns 0. A do-nothing version would also pass this test, since sin(0) = 0, but it isn't actually sine.
+
+**A guess about `T-SIN-ERR1`**
+If that test is `sin` on an empty stack, it will probably pass on its first run, like the other error tests. `sin` starts with `engine.pop()`, which already raises the empty-stack error, and `main.py` already prints `Error: stack underflow`.
+
+## T-SIN-CPLX1 RED
+
+# Prompt
+TEST prompt (TDD red step) for: T-SIN-CPLX1 push 1+j1 SIN pop -> 1.298457581 + j0.634963915
+
+Rules:
+- Add exactly ONE new test for the case above. Name it after the test ID and follow the framework and style of the existing tests.
+- Use the exact command input and expected output given above.
+- Do NOT modify production code or any existing test.
+- Run only the new test and show that it fails. Then stop. Do not try to make it pass.
+- Append to prompts.md a heading "<TEST-ID> RED", the full text of this prompt with the arguments filled in, and one line summarizing the test you added.
+
+Summary: Filled in the `test_T_SIN_CPLX1` placeholder in tests/test_sin.py with a unit check (`sin` of (1, 1) gives (1.298457581, 0.634963915)) and a CLI check (`push 1+j1 SIN pop` prints `1.298457581+j0.634963915`); it fails because `sin` currently ignores the imaginary part and returns (0.841..., 0), and the CLI part will also need output printed to 9 decimal places (currently 6 significant digits: `1.29846+j0.634964`).
+
+# Result
+
+The test is written and failing properly. I also found a catch that will make the green step bigger than the earlier ones.
+
+**What I did**
+- I filled in the `test_T_SIN_CPLX1` placeholder in [tests/test_sin.py](tests/test_sin.py):
+  1. **Engine test:** sin of `(1, 1)` should be about `(1.298457581, 0.634963915)`. The numbers are compared with a small allowed error (0.0001), so the decimal places don't need to match exactly.
+  2. **CLI test:** `push 1+j1 SIN pop` should print exactly `1.298457581+j0.634963915`.
+- I checked your expected value against Python first. The true answer is `1.29845758141...+j0.63496391478...`, so your value is right, rounded to 9 decimal places.
+- I ran only this test, and it failed with `actual = (0.841..., 0.0)`. That's the real-only shortcut from the last step: it computes sin(1) and ignores the imaginary part. This is the failure we want.
+- I added the `T-SIN-CPLX1 RED` entry to prompts.md, including the note below. No production code changed.
+
+**The catch: rounding**
+Your calculator currently prints numbers to **6 significant digits**, so even with the correct maths it would print `1.29846+j0.634964`. The CLI part of this test will still fail until the green step also changes how numbers are printed, to 9 decimal places with trailing zeros removed.
+
+This is the first test that needs a change to the shared output formatting, and that affects every command, not just `sin`.
+- **Existing tests:** I expect them to keep passing. Whole numbers like `7` would still print as `7` once trailing zeros are removed.
+- **Whether you want this:** it's your design call. If your project spec says 9 decimal places, this test is right and the formatter should change. If you'd rather keep 6 digits, tell me and I'll change the expected string in this test to `1.29846+j0.634964` instead.
+
+**For the green step**
+Two changes are needed:
+- use `cmath.sin` in `sin.py` so complex numbers are handled properly
+- change `format_num` in [src/calc.py](src/calc.py) to print 9 decimal places.
+
+
+
+## T-SIN-CPLX1 GREEN
+
+# Prompt
+CODE prompt (TDD green step) for: T-SIN-CPLX1
+
+Rules:
+- Make the smallest change to the production code that makes the failing test T-SIN-CPLX1 pass.
+- Implement only what this test requires. Add nothing for future tests.
+- Do NOT modify any test file.
+- Reuse the existing output formatting and command parsing. Don't rewrite them unless this test needs it.
+- Run the full test suite once. If anything fails, report which tests failed and stop. Do not attempt a fix.
+- Append to prompts.md a heading "<TEST-ID> GREEN", the full text of this prompt with the arguments filled in, and one line summarizing the code change.
+
+Summary: Switched src/calc_functions/sin.py from math.sin on the real part to cmath.sin on the full complex value, and changed format_num in src/calc.py to print non-integers to 9 decimal places with trailing zeros stripped (was 6 significant digits via :g), which this test's exact CLI output required; full suite 29 passed.
+
+
+# Result
+
+`T-SIN-CPLX1` passes, and the full suite does too: 29 passed, 0 failed. This one needed two changes, as I warned last time.
+
+**What I changed**
+1. **[src/calc_functions/sin.py](src/calc_functions/sin.py):** I replaced `math.sin`, which only works on real numbers, with `cmath.sin`, Python's version that handles complex numbers. It turns the stack value into a Python complex number, takes the sine, and pushes the result back as a (real, imaginary) pair.
+2. **[src/calc.py](src/calc.py), one line in `format_num`:** decimals now print to **9 decimal places with trailing zeros removed**, instead of 6 significant digits. That's what turned `1.29846` into `1.298457581`. You were OK with that, since you went ahead with this step.
+
+**Did the formatting change break anything?**
+No. Whole numbers still print as before (`7`, `-6`, `3-j1`), because `format_num` handles them before reaching the changed line. Every earlier test still passes.
+
+**Two small side effects of the new formatting, not problems yet**
+- **Very small numbers now print as 0.** Something like 0.000000000001 rounds away to `0` instead of printing as `1e-12`. For a calculator that's arguably nicer.
+- **Big numbers print in full.** 12345678.5 now prints as `12345678.5`, where before it would have been cut to `1.23457e+07`.
+
+No test checks either case, so I left both alone, which is what the rules ask for. If your spec ever mentions scientific notation, that's where to look.
+
+**Next up:** `T-SIN-ERR1`. If it's `sin` on an empty stack, I expect it to pass on its first run, like every other error test so far.
+
+## T-SIN-ERR1 RED
+
+# Prompt
+TEST prompt (TDD red step) for: T-SIN-ERR1 SIN -> Error: stack underflow
+
+Rules:
+- Add exactly ONE new test for the case above. Name it after the test ID and follow the framework and style of the existing tests.
+- Use the exact command input and expected output given above.
+- Do NOT modify production code or any existing test.
+- Run only the new test and show that it fails. Then stop. Do not try to make it pass.
+- Append to prompts.md a heading "<TEST-ID> RED", the full text of this prompt with the arguments filled in, and one line summarizing the test you added.
+
+Summary: Filled in the `test_T_SIN_ERR1` placeholder in tests/test_sin.py with a unit check (`sin` on an empty stack raises IndexError) and a CLI check (`SIN` prints `Error: stack underflow` to stderr); it PASSED on first run (no red) because `sin` starts with `engine.pop()`, which already raises IndexError, and main.py already turns that into the underflow message.
+
+# Result
+
+`T-SIN-CPLX1` passes, and the full suite does too: 29 passed, 0 failed. This one needed two changes, as I warned last time.
+
+**What I changed**
+1. **[src/calc_functions/sin.py](src/calc_functions/sin.py):** I replaced `math.sin`, which only works on real numbers, with `cmath.sin`, Python's version that handles complex numbers. It turns the stack value into a Python complex number, takes the sine, and pushes the result back as a (real, imaginary) pair.
+2. **[src/calc.py](src/calc.py), one line in `format_num`:** decimals now print to **9 decimal places with trailing zeros removed**, instead of 6 significant digits. That's what turned `1.29846` into `1.298457581`. You were OK with that, since you went ahead with this step.
+
+**Did the formatting change break anything?**
+No. Whole numbers still print as before (`7`, `-6`, `3-j1`), because `format_num` handles them before reaching the changed line. Every earlier test still passes.
+
+**Two small side effects of the new formatting, not problems yet**
+- **Very small numbers now print as 0.** Something like 0.000000000001 rounds away to `0` instead of printing as `1e-12`. For a calculator that's arguably nicer.
+- **Big numbers print in full.** 12345678.5 now prints as `12345678.5`, where before it would have been cut to `1.23457e+07`.
+
+No test checks either case, so I left both alone, which is what the rules ask for. If your spec ever mentions scientific notation, that's where to look.
+
+**Next up:** `T-SIN-ERR1`. If it's `sin` on an empty stack, I expect it to pass on its first run, like every other error test so far.
