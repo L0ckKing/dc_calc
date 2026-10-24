@@ -3,6 +3,7 @@ from src.calc_functions.add import add
 from src.calc_functions.abs import abs as abs_operation
 from src.calc_functions.sqr import sqr
 from src.calc_functions.sqrt import sqrt
+from src.calc_functions.asin import asin
 
 def transform_number(token: str) -> tuple[float, float]:
         token = token.replace(" ", "")
@@ -84,6 +85,7 @@ class StackEngine:
         "abs": abs_operation,
         "sqr": sqr,
         "sqrt": sqrt,
+        "asin": asin,
     }
 
     
