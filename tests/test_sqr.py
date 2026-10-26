@@ -38,3 +38,15 @@ def test_T_SQR_ERR1():
     # 2. CLI test (error message)
     result = runner.invoke(app, input="SQR\n")
     assert "Error: stack underflow" in result.stderr
+
+#Extra test besides the ones recommended in the instructions
+def test_T_SQR_PURE_IMAG():
+    # 1. Unit test (isolated engine logic)
+    calc = build_calc((0.0, 2.0))
+    calc.apply_operation("sqr")
+    compare(calc.pop(), (-4.0, 0.0))
+
+    # 2. CLI test (end-to-end user experience)
+    exit_code, output = run_cli("push j2 SQR pop")
+    assert exit_code == 0
+    assert output == "-4+j0"

@@ -38,3 +38,20 @@ def test_T_SQRT_ERR1():
     # 2. CLI test (error message)
     result = runner.invoke(app, input="SQRT\n")
     assert "Error: stack underflow" in result.stderr
+
+#Extra test besides the ones recommended in the instructions 
+def test_T_SQRT_GENERAL_CPLX():
+    from src.calc import transform_number
+
+    # 1. Unit test (isolated engine logic)
+    calc = build_calc((3.0, 4.0))
+    calc.apply_operation("sqrt")
+    compare(calc.pop(), (2.0, 1.0), tol=1e-8)
+
+    # 2. CLI test (end-to-end user experience)
+    exit_code, output = run_cli("push 3+j4 SQRT pop")
+    assert exit_code == 0
+
+    # Convert CLI output to a numeric tuple
+    result = transform_number(output)
+    compare(result, (2.0, 1.0), tol=1e-8)
