@@ -17,8 +17,6 @@ def transform_number(token: str) -> tuple[float, float]:
         left, right = token.split("j")
 
         # If right is empty or just a sign, 'j' might have an implicit coefficient of 1
-        # e.g., 'j' -> left='', right='' -> imag = 1.0
-        # e.g., '3+j' -> left='3+', right='' -> imag = 1.0
         if right == "" or right == "+":
             imag_val = 1.0
         elif right == "-":
@@ -70,8 +68,6 @@ class StackEngine:
         self.stack.append(value)
 
     def pop(self) -> tuple[float, float]:
-        if not self.stack:
-            raise IndexError("Stack underflow")
         return self.stack.pop()
 
     def pop_and_print(self):
@@ -88,9 +84,8 @@ class StackEngine:
         "delete": delete,
         "sin": sin,
         "cos": cos,
+        "sub": sub
     }
-
-    
 
     def apply_operation(self, token: str):
         if token in self.operations:
