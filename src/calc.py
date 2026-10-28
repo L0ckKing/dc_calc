@@ -1,5 +1,5 @@
 # src/calc.py
-from src.calc_functions.add import add
+from src.calc_functions import add, sub
 from src.calc_functions.abs import abs as abs_operation
 from src.calc_functions.sqr import sqr
 from src.calc_functions.sqrt import sqrt
