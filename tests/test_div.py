@@ -36,3 +36,14 @@ def test_T_DIV_ERR1():
     result = runner.invoke(app, input="push 1 push 0 div\n")
     assert result.exit_code == 0
     assert result.stderr.strip() == "Error: division by zero"
+
+def test_T_DIV_ERR2():
+    # 1. Unit test (isolated engine logic)
+    calc = build_calc((1.0, 0.0), (0.0, 0.0))
+    with pytest.raises(ZeroDivisionError):
+        div(calc)
+
+    # 2. CLI test (end-to-end user experience)
+    result = runner.invoke(app, input="push 1+j0 push 0+j0 div\n")
+    assert result.exit_code == 0
+    assert result.stderr.strip() == "Error: division by zero"
