@@ -1,5 +1,6 @@
 # src/calc.py
 from src.calc_functions.add import add
+from src.calc_functions.sub import sub
 from src.calc_functions.mul import mul
 from src.calc_functions.div import div
 from src.calc_functions.delete import delete
