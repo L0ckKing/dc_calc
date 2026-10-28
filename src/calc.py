@@ -5,6 +5,11 @@ from src.calc_functions.sqr import sqr
 from src.calc_functions.sqrt import sqrt
 from src.calc_functions.asin import asin
 from src.calc_functions.acos import acos
+from src.calc_functions.mul import mul
+from src.calc_functions.div import div
+from src.calc_functions.delete import delete
+from src.calc_functions.sin import sin
+from src.calc_functions.cos import cos
 
 def transform_number(token: str) -> tuple[float, float]:
         token = token.replace(" ", "")
@@ -17,8 +22,6 @@ def transform_number(token: str) -> tuple[float, float]:
         left, right = token.split("j")
 
         # If right is empty or just a sign, 'j' might have an implicit coefficient of 1
-        # e.g., 'j' -> left='', right='' -> imag = 1.0
-        # e.g., '3+j' -> left='3+', right='' -> imag = 1.0
         if right == "" or right == "+":
             imag_val = 1.0
         elif right == "-":
@@ -48,7 +51,7 @@ def format_num(n: float) -> str:
     # Format to int string if it's an exact integer, otherwise normal float
     if n.is_integer():
         return str(int(n))
-    return f"{n:g}"
+    return f"{n:.9f}".rstrip("0").rstrip(".")
 
 def format_canonical(value: tuple[float, float]) -> str:
     real, imag = value
@@ -70,8 +73,6 @@ class StackEngine:
         self.stack.append(value)
 
     def pop(self) -> tuple[float, float]:
-        if not self.stack:
-            raise IndexError("Stack underflow")
         return self.stack.pop()
 
     def pop_and_print(self):
@@ -88,9 +89,13 @@ class StackEngine:
         "sqrt": sqrt,
         "asin": asin,
         "acos": acos,
+        "mul": mul,
+        "div": div,
+        "delete": delete,
+        "sin": sin,
+        "cos": cos,
+        "sub": sub
     }
-
-    
 
     def apply_operation(self, token: str):
         if token in self.operations:
